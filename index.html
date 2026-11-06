@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>-SPRIL-KIT - Stage plot, input list y rider</title>
+<style>
+:root{--floor:#dfe3e8;--ink:#17212b;--tape:#f2c230;--cue:#c0392b;--paper:#fff;--line:#9aa5b1}
+*{box-sizing:border-box}
+body{margin:0;background:var(--floor);color:var(--ink);font:16px/1.45 "Helvetica Neue",Arial,sans-serif}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+header.top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:6px solid var(--tape);padding-bottom:12px;margin-bottom:20px}
+h1{margin:0;font:800 clamp(24px,5vw,36px)/1.1 "Arial Narrow","Helvetica Neue",Arial,sans-serif;letter-spacing:-.01em}
+h2{font:800 22px/1.2 "Arial Narrow","Helvetica Neue",Arial,sans-serif;margin:32px 0 10px;padding-left:10px;border-left:8px solid var(--tape)}
+h1 small{display:block;font-size:.55em;font-weight:600;letter-spacing:0;margin-top:4px}
+h3{margin:16px 0 4px;font-size:15px}
+th button{margin-left:6px;padding:0 6px;border:1px solid #fff;background:transparent;color:#fff;font-size:12px}
+th button:hover{color:var(--ink)}
+button{font:inherit;cursor:pointer;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:7px 12px;border-radius:4px}
+button:hover{background:var(--tape)}
+button:focus-visible,[contenteditable]:focus-visible,input:focus-visible{outline:3px solid var(--cue);outline-offset:1px}
+.pdf{background:var(--ink);color:#fff}.pdf:hover{background:var(--cue);color:#fff}
+.meta{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+label{display:block;font-size:13px}
+input{width:100%;font:inherit;padding:8px;border:1px solid var(--line);border-radius:4px;background:var(--paper)}
+.pal{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.hint{font-size:13px;color:#4a5866;margin:4px 0}
+#stage{position:relative;aspect-ratio:16/10;background:
+ linear-gradient(var(--paper),var(--paper)) padding-box,#fff;
+ background-image:linear-gradient(#e6eaee 1px,transparent 1px),linear-gradient(90deg,#e6eaee 1px,transparent 1px);background-size:10% 10%;
+ border:3px solid var(--ink);border-bottom:10px solid var(--tape);touch-action:none;overflow:hidden}
+.aud{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:12px;letter-spacing:.08em;color:#4a5866}
+.back{position:absolute;top:4px;left:0;right:0;text-align:center;font-size:12px;color:#4a5866}
+.it{position:absolute;transform:translate(-50%,-50%);min-width:70px;max-width:140px;text-align:center;background:var(--paper);border:2px solid var(--ink);border-radius:6px;padding:4px 6px;cursor:grab;user-select:none;font-size:13px;line-height:1.2}
+.it span{display:block;font-size:22px}
+.it i{position:absolute;top:-10px;right:-10px;width:20px;height:20px;border-radius:50%;background:var(--cue);color:#fff;font-style:normal;font-size:14px;line-height:20px;cursor:pointer}
+table{width:100%;border-collapse:collapse;background:var(--paper);font-size:14px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--ink);color:#fff;font-weight:600}
+td.n{width:42px;text-align:center;font-weight:700}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:8px 10px;min-height:64px;white-space:pre-wrap}
+.box:empty:before{content:attr(data-ph);color:#8794a1}
+.pb{display:none}
+@media print{
+ @page{size:letter;margin:2cm}
+ body{background:#fff}table{font-size:12px}.noprint,.it i{display:none!important}
+ main{padding:0;max-width:none}
+ section{break-after:page}section:last-of-type{break-after:auto}
+ input{border:none;padding:0;font-weight:600}
+ .pb{display:block}
+ #stage{border-color:#000}
+ th{background:#eee!important;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ #stage,.it,h2{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<main>
+<header class="top">
+ <h1>-SPRIL-KIT<small>Stage plot, input list y rider</small></h1>
+ <div class="noprint"><button class="pdf" id="pdf">Descargar PDF</button></div>
+</header>
+<p class="hint noprint">Rellena los datos, coloca los elementos en el escenario y pulsa «Descargar PDF». En la ventana que se abre, elige «Guardar como PDF» como destino. Todo se guarda solo en tu navegador.</p>
+
+<div class="meta">
+ <label>Nombre del grupo o compañía<input id="band" autocomplete="off"></label>
+ <label>Contacto técnico (nombre, teléfono, email)<input id="contact" autocomplete="off"></label>
+ <label>Integrantes y cantidad de personas<input id="members" autocomplete="off"></label>
+</div>
+
+<section>
+ <h2>Plano de escenario</h2>
+ <div class="pal noprint" id="pal"></div>
+ <p class="hint noprint">Arrastra para mover. Doble clic para renombrar. La × roja quita el elemento.</p>
+ <div id="stage"></div>
+</section>
+
+<section>
+ <h2>Input list</h2>
+ <table>
+  <thead><tr id="head"></tr></thead>
+  <tbody id="rows"></tbody>
+ </table>
+ <p class="noprint"><button id="addrow">Añadir canal</button> <button id="addcol">Añadir columna</button></p>
+ <p class="hint noprint">Doble clic en el título de una columna para renombrarla; la × la quita.</p>
+</section>
+
+<section>
+ <h2>Rider técnico</h2>
+ <div id="rider"></div>
+</section>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+const KINDS=[["Batería","🥁"],["Bajo / amp","🎸"],["Guitarra / amp","🎸"],["Teclado","🎹"],["Voz / micro","🎤"],["Monitor","🔈"],["Caja DI","▫️"],["Percusión","🪘"],["Vientos","🎷"],["Laptop / pista","💻"],["Otro","⬜"]];
+const RIDER=[
+ ["sound","Sonido","Ej.: PA acorde al aforo, 4 monitores en 4 mezclas, técnico de sala con prueba de sonido de 60 min."],
+ ["backline","Backline","Ej.: batería completa con platillos, 2 amplificadores de guitarra, 1 amplificador de bajo."],
+ ["light","Luz y escenario","Ej.: medidas mínimas del escenario, tomas de corriente, iluminación básica."],
+ ["hosp","Hospitalidad y camerino","Ej.: camerino con llave, agua, toallas, comida para 5 personas."],
+ ["notes","Otras notas","Horarios de montaje, transporte, restricciones."]];
+let S;
+try{S=JSON.parse(localStorage.getItem("sp1"))}catch(e){}
+const COLS=["Fuente","Micrófono / DI","Soporte","+48V","Monitor","Notas"];
+S=S||{meta:{},items:[],cols:COLS.slice(),rows:[["Bombo","Beta 52","Pie corto","","",""],["Voz principal","SM58","Pie con jirafa","","",""],["Guitarra","SM57","Pie corto","","",""]],rider:{}};
+if(!S.cols){S.cols=COLS.slice();S.rows=S.rows.map(r=>[r[0]||"",r[1]||"",r[2]||"","","",r[3]||""])}
+const save=()=>{try{localStorage.setItem("sp1",JSON.stringify(S))}catch(e){}};
+
+["band","contact","members"].forEach(k=>{const el=$("#"+k);el.value=S.meta[k]||"";el.oninput=()=>{S.meta[k]=el.value;save()}});
+
+const st=$("#stage");
+function drawStage(){
+ st.innerHTML='<div class="back">Fondo</div><div class="aud">Público</div>';
+ S.items.forEach(it=>{
+  const d=document.createElement("div");d.className="it";
+  d.style.left=it.x+"%";d.style.top=it.y+"%";
+  d.innerHTML='<span></span><b></b><i title="Quitar">×</i>';
+  d.querySelector("span").textContent=it.e;d.querySelector("b").textContent=it.t;
+  d.onpointerdown=e=>{
+   if(e.target.tagName==="I"){S.items=S.items.filter(o=>o!==it);save();drawStage();return}
+   d.setPointerCapture(e.pointerId);const r=st.getBoundingClientRect();
+   d.onpointermove=ev=>{
+    it.x=Math.min(95,Math.max(5,(ev.clientX-r.left)/r.width*100));
+    it.y=Math.min(92,Math.max(8,(ev.clientY-r.top)/r.height*100));
+    d.style.left=it.x+"%";d.style.top=it.y+"%"};
+   d.onpointerup=()=>{d.onpointermove=null;save()}};
+  d.ondblclick=()=>{const t=prompt("Nombre del elemento",it.t);if(t){it.t=t;save();drawStage()}};
+  st.append(d)});
+}
+KINDS.forEach(([t,e])=>{
+ const b=document.createElement("button");b.textContent=e+" "+t;
+ b.onclick=()=>{S.items.push({t,e,x:30+Math.random()*40,y:30+Math.random()*30});save();drawStage()};
+ $("#pal").append(b)});
+drawStage();
+
+function drawRows(){
+ const hd=$("#head");hd.innerHTML="<th>Canal</th>";
+ S.cols.forEach((c,j)=>{
+  const th=document.createElement("th");th.title="Doble clic para renombrar";
+  const sp=document.createElement("span");sp.textContent=c;th.append(sp);
+  th.ondblclick=()=>{const t=prompt("Nombre de la columna",c);if(t){S.cols[j]=t;save();drawRows()}};
+  const bt=document.createElement("button");bt.className="noprint";bt.textContent="×";bt.title="Quitar columna";
+  bt.onclick=e=>{e.stopPropagation();if(confirm("¿Quitar la columna «"+c+"»?")){S.cols.splice(j,1);S.rows.forEach(r=>r.splice(j,1));save();drawRows()}};
+  th.append(bt);hd.append(th)});
+ hd.append(Object.assign(document.createElement("th"),{className:"noprint"}));
+ const tb=$("#rows");tb.innerHTML="";
+ S.rows.forEach((r,i)=>{
+  const tr=document.createElement("tr");
+  tr.innerHTML='<td class="n">'+(i+1)+'</td>';
+  S.cols.forEach((_,j)=>{
+   const td=document.createElement("td");td.contentEditable="plaintext-only";td.textContent=r[j]||"";
+   td.oninput=()=>{r[j]=td.textContent;save()};tr.append(td)});
+  const x=document.createElement("td");x.className="noprint";
+  x.innerHTML='<button title="Quitar canal">×</button>';
+  x.firstChild.onclick=()=>{S.rows.splice(i,1);save();drawRows()};
+  tr.append(x);tb.append(tr)});
+}
+$("#addrow").onclick=()=>{S.rows.push(S.cols.map(()=>""));save();drawRows()};
+$("#addcol").onclick=()=>{const t=prompt("Nombre de la nueva columna");if(t){S.cols.push(t);S.rows.forEach(r=>r.push(""));save();drawRows()}};
+drawRows();
+
+RIDER.forEach(([k,t,ph])=>{
+ const h=document.createElement("h3");h.textContent=t;
+ const b=document.createElement("div");b.className="box";b.contentEditable="plaintext-only";
+ b.dataset.ph=ph;b.textContent=S.rider[k]||"";
+ b.oninput=()=>{S.rider[k]=b.textContent;save()};
+ $("#rider").append(h,b)});
+
+$("#pdf").onclick=()=>window.print();
+</script>
+</body>
+</html>
